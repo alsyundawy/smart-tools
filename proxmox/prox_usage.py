@@ -42,6 +42,19 @@ def get_pve_status() -> str:
     except Exception:
         cpu_line = "CPU info not available"
 
+    # Get Tdie temperature from `sensors` output (fallback to N/A)
+    tdie: str = "N/A"
+    try:
+        sensors_out = subprocess.check_output(["sensors"], text=True)
+        for line in sensors_out.splitlines():
+            if "Tdie" in line:
+                parts = line.split()
+                if len(parts) >= 2:
+                    tdie = parts[1]
+                    break
+    except Exception:
+        tdie = "N/A"
+
     # Get CPU model and core count
     cpu_model = "Unknown"
     cpu_cores = 0
@@ -59,6 +72,7 @@ def get_pve_status() -> str:
         f"(buff/cache: {buff_cache} MB)\n"
         f"{YELLOW}- CPU:{RESET} {CYAN}{cpu_model}{RESET} ({cpu_cores} cores)\n"
         f"{YELLOW}- Usage:{RESET} {RED}{cpu_line}{RESET}\n"
+        f"{YELLOW}- Tdie:{RESET} {GREEN}{tdie}{RESET}\n"
     )
     return status
 
